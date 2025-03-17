@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 function usePagination(items, pageLimit) {
-    const [pageNumber, setPageNumber] = useState(0);
+    const [pageNumber, setPageNumber] = useState(1);
     const pageCount = Math.ceil(items.length / pageLimit);
 
     const changePage = (pN) => {
@@ -9,18 +9,23 @@ function usePagination(items, pageLimit) {
     };
 
     const pageData = () => {
-        const s = pageNumber * pageLimit;
+        const s = (pageNumber-1) * pageLimit;
         const e = s + pageLimit;
         return items.slice(s, e);
     };
 
     const nextPage = () => {
-        setPageNumber(Math.min(pageNumber + 1, pageCount - 1));
+        setPageNumber((currPage) => Math.min(currPage + 1, pageCount));
     };
 
     const previousPage = () => {
-        setPageNumber(Math.max(pageNumber - 1, 0));
+        setPageNumber((currPage) => Math.max(currPage - 1, 1));
     };
+
+    const jumpPage = (page) => {
+        const pageNumber = Math.max(1, page);
+        setPageNumber((currPage) => Math.min(pageNumber, pageCount))
+    }
 
     return {
         pageNumber,
@@ -29,6 +34,7 @@ function usePagination(items, pageLimit) {
         pageData,
         nextPage,
         previousPage,
+        jumpPage
     };
 }
 

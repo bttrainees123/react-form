@@ -5,6 +5,7 @@ const Display = () => {
   const [editInd, setEditInd] = useState(null);
   const [editData, setEditData] = useState({});
   const [currPage, setCurrPage] = useState([])
+  const [editCheck, setEditCheck] = useState(false)
 
   const pageLimit = 2;
 
@@ -65,6 +66,7 @@ const Display = () => {
   };
 
   const handleEdit = (ind) => {
+    setEditCheck(!editCheck)
     setEditInd(ind);
     console.log("Ind ", ind);
     setEditData({ ...userData[ind] });
@@ -164,7 +166,7 @@ const Display = () => {
         </thead>
         <tbody>
           {userData.length > 0 ? (
-            currPage.map((user, ind) => (
+          currPage.map((user, ind) => (
               <tr key={ind}>
                 <td>
                   {user.file ? (
@@ -202,8 +204,8 @@ const Display = () => {
             </tr>
           )}
         </tbody>
-
       </table>
+      
       {editInd !== null && (
         <form className='form-controller' onSubmit={handleSave}>
           <div>Username:
@@ -284,7 +286,7 @@ const Display = () => {
           <button type="submit">Update</button>
         </form>
       )}
-      <Pagination items={userData} pageLimit={pageLimit} />
+      <Pagination items={userData} pageLimit={pageLimit} setPageItems={setCurrPage} />
 
     </>
   );

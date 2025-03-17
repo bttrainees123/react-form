@@ -2,16 +2,18 @@ import React, { useEffect } from "react";
 import usePagination from "./usePagination.js";
 
 const Pagination = (props) => {
-    const { pageNumber, changePage, pageData, nextPage, previousPage } =
+
+    const { pageNumber, pageCount, changePage, pageData, nextPage, previousPage } =
         usePagination(props.items, props.pageLimit);
+
 
     useEffect(() => {
         props.setPageItems(pageData);
-    }, [pageNumber]);
+    }, [pageNumber, changePage]);
 
     return (
         <div>
-            <b onClick={previousPage}>Prev</b>
+            <button style={{cursor: 'pointer'}} disabled={(pageNumber === 1)?true: false} onClick={previousPage }>Prev</button>
             <input
                 value={pageNumber}
                 onChange={(e) => {
@@ -19,7 +21,7 @@ const Pagination = (props) => {
                 }}
                 type="number"
             />
-            <b onClick={nextPage}>Next</b>
+            <button style={{cursor: 'pointer'}}  disabled={(pageNumber === pageCount)?true: false} onClick={nextPage}>Next</button>
         </div>
     );
 };
