@@ -9,7 +9,7 @@ const Form = () => {
   const [gender, setGender] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [subject, setSubject] = useState(new Map());
+  const [subject, setSubject] = useState([]);
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
   const genderInputRef = useRef()
@@ -18,11 +18,18 @@ const Form = () => {
   const handleRadioChange = (val) => {
     setSelectedValue(val);
     document.getElementById('stream-error').style.display = 'none';
-  };
+  }
 
   const handleSubjectChange = (val) => {
-    updateMap(val.target.name, val.target.checked);
-    document.getElementById('subject-error').style.display = 'none';
+    console.log(val.target.name, "     ", val.target.checked);
+    const newArr = [...subject];
+    if (val.target.checked) {
+      newArr.push(val.target.name)
+    }
+    else {
+      newArr.splice(newArr.indexOf(val.target.key), 1)
+    }
+    setSubject(newArr)
   };
 
   const handlePasswordChange = (val) => {
@@ -42,21 +49,6 @@ const Form = () => {
     { name: 'Biology ', key: 'bio', label: 'Biology ' },
   ];
 
-  const updateMap = (key, value) => {
-    setSubject((map => {
-      const newMap = new Map(map)
-      if (newMap.has(key)) {
-        newMap.delete(key)
-      }
-      else {
-        newMap.set(key, value)
-      }
-      return newMap;
-    }
-    ))
-  }
-
-
   const handleProfilePic = (val) => {
     const file = val.target.files[0]
     if (file) {
@@ -74,7 +66,6 @@ const Form = () => {
     return isValid;
   };
 
-
   const validateUserName = (username) =>
     validateField(username, /^[a-z0-9]+$/i, 'username-error');
 
@@ -86,22 +77,18 @@ const Form = () => {
 
   const validateRequiredFields = () => {
     let isValid = true;
-
     if (!gender) {
       document.getElementById('gender-error').style.display = 'block';
       isValid = false;
     }
-
     if (!selectedValue) {
       document.getElementById('stream-error').style.display = 'block';
       isValid = false;
     }
-
     if (subject.size === 0) {
       document.getElementById('subject-error').style.display = 'block';
       isValid = false;
     }
-
     return isValid;
   };
 
@@ -122,7 +109,6 @@ const Form = () => {
   const validatePassword = (password) =>
     validateField(password, /^[a-zA-Z0-9!@#$%^&*]{6,16}$/, 'password-error');
 
-
   const handleClear = () => {
     setUserName('');
     setAge('');
@@ -140,7 +126,6 @@ const Form = () => {
       fileInputRef.current.value = '';
     }
   };
-
 
   const storeData = (e) => {
     e.preventDefault();
@@ -168,7 +153,6 @@ const Form = () => {
       navigate('/display');
     }
   };
-
 
   return (
     <>
@@ -210,7 +194,7 @@ const Form = () => {
           {checkOption.map((it) => (
             <label key={it.key}>
               {it.label}
-              <input type='checkbox' name={it.name} checked={subject.has(it.name)} onChange={handleSubjectChange} />
+              <input type='checkbox' name={it.name} checked={subject.includes(it.name)} onChange={handleSubjectChange} />
             </label>
           ))}
           <span id='subject-error' style={{ display: 'none', color: 'red' }}>Select at least one subject</span>
@@ -229,8 +213,6 @@ const Form = () => {
         <button>Submit</button>
       </form>
       <div>
-        {/* <button>Submit</button> */}
-        {/* <button onClick={handleClear}>Clear</button> */}
       </div>
     </>
   )
