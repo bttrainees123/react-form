@@ -1,17 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Pagination from "./Pagination";
-let pageSize = 10
 const Display = () => {
   const [userData, setUserData] = useState([]);
   const [editInd, setEditInd] = useState(null);
   const [editData, setEditData] = useState({});
-  const [currPage, setCurrPage] = useState(1)
+  const [currPage, setCurrPage] = useState([])
 
-  const currData = useMemo(() => {
-    const firstPageInd = (currPage - 1) * pageSize;
-    const lastPageInd = firstPageInd + pageSize
-    return userData.slice(firstPageInd, lastPageInd)
-  }, [currPage])
+  const pageLimit = 2;
+
 
   useEffect(() => {
     const storedData = localStorage.getItem("data");
@@ -71,7 +67,7 @@ const Display = () => {
   const handleEdit = (ind) => {
     setEditInd(ind);
     console.log("Ind ", ind);
-    setEditData({...userData[ind]});
+    setEditData({ ...userData[ind] });
   };
 
   const handleChange = (e) => {
@@ -80,8 +76,8 @@ const Display = () => {
     console.log("Value ", value);
     console.log("type ", type);
     console.log("checked ", checked);
-    
-    if (type === "checkbox" ) {
+
+    if (type === "checkbox") {
       setEditData((prevData) => ({
         ...prevData,
         subject: checked
@@ -99,18 +95,18 @@ const Display = () => {
 
   const handleSave = (e) => {
     e.preventDefault();
-    if(
+    if (
       validateUserName(editData.username) &&
       validateEmail(editData.email) &&
       validateAge(editData.age) &&
       validateRequiredFields()
-    ){
-    const updatedData = [...userData];
-    updatedData[editInd] = editData;
-    setUserData(updatedData);
-    localStorage.setItem("data", JSON.stringify(updatedData));
-    setEditInd(null);
-    setEditData({});
+    ) {
+      const updatedData = [...userData];
+      updatedData[editInd] = editData;
+      setUserData(updatedData);
+      localStorage.setItem("data", JSON.stringify(updatedData));
+      setEditInd(null);
+      setEditData({});
     }
   };
 
@@ -118,12 +114,12 @@ const Display = () => {
     let input = document.getElementById("myInput")
     let filter = input.value.toLowerCase();
     let tr = document.getElementsByTagName("tr")
-    for(let i = 1; i < tr.length; i++){
+    for (let i = 1; i < tr.length; i++) {
       let textVal = tr[i].textContent || tr[i].innerText
-      if(textVal.toLowerCase().indexOf(filter) > -1){
+      if (textVal.toLowerCase().indexOf(filter) > -1) {
         tr[i].style.display = "";
       }
-      else{
+      else {
         tr[i].style.display = "none"
       }
     }
@@ -148,31 +144,31 @@ const Display = () => {
 
   return (
     <>
-    <div>
-      <input type="text" id="myInput" onKeyUp={mySearch} placeholder="search"/>
+      <div>
+        <input type="text" id="myInput" onKeyUp={mySearch} placeholder="search" />
 
-    </div>
+      </div>
       <table className="table-container">
         <thead>
-        <tr>
-          <th>Profile Pic</th>
-          <th>User Name</th>
-          <th>Email</th>
-          <th>Gender</th>
-          <th>Age</th>
-          <th>Stream</th>
-          <th>Subjects</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
+          <tr>
+            <th>Profile Pic</th>
+            <th>User Name</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>Age</th>
+            <th>Stream</th>
+            <th>Subjects</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
         </thead>
         <tbody>
-        {userData.length > 0 ? (
-          currData.map((user, ind) => (
-            <tr key={ind}>
+          {userData.length > 0 ? (
+            currPage.map((user, ind) => (
+              <tr key={ind}>
                 <td>
                   {user.file ? (
-                    <img src={user.file} style={{maxWidth: "200px", }} alt="Profile Pic" />
+                    <img src={user.file} style={{ maxWidth: "200px", }} alt="Profile Pic" />
                   ) : (
                     <p>No Profile Pic</p>
                   )}
@@ -197,24 +193,24 @@ const Display = () => {
                   <button onClick={() => handleDelete(ind)}>Delete</button>
                 </td>
               </tr>
-          ))
-        ) : (
-          <tr>
+            ))
+          ) : (
+            <tr>
               <td colSpan="9">
                 <h1>No data available</h1>
               </td>
             </tr>
-        )}
+          )}
         </tbody>
 
       </table>
       {editInd !== null && (
         <form className='form-controller' onSubmit={handleSave}>
-        <div>Username:
-          <input type='text' name="username" value={editData.username} onChange={handleChange} onInput={validateUserName} placeholder='Enter Username' minLength={6} maxLength={20} />
-          <span id='username-error' style={{ display: "none" }}>Enter valid username</span>
-        </div><br />
-        <div>
+          <div>Username:
+            <input type='text' name="username" value={editData.username} onChange={handleChange} onInput={validateUserName} placeholder='Enter Username' minLength={6} maxLength={20} />
+            <span id='username-error' style={{ display: "none" }}>Enter valid username</span>
+          </div><br />
+          <div>
             Select Gender:
             <select name="gender" value={editData.gender || ""} onChange={handleChange}>
               <option value="">Select</option>
@@ -224,18 +220,18 @@ const Display = () => {
                 </option>
               ))}
             </select>
-            <span id='gender-error' style={{ display: 'none'}}>Select your gender</span>
+            <span id='gender-error' style={{ display: 'none' }}>Select your gender</span>
           </div><br />
-        <div>Age:
-          <input type='text' name="age" value={editData.age} onChange={handleChange} onInput={validateAge} />
-          <span id='age-error' style={{ display: 'none' }}>Age must be greater than 16 and less than 90</span>
-        </div><br />
-        <div>Email:
-          <input type='text' name="email" value={editData.email} onChange={handleChange} onInput={validateEmail && validateLocalEmail} />
-          <span id='email-error' style={{ display: "none" }}>Enter valid Email</span>
-          <span id='duplicate-error' style={{ display: "none" }}>Email already exist</span>
-        </div><br />
-        <div>
+          <div>Age:
+            <input type='text' name="age" value={editData.age} onChange={handleChange} onInput={validateAge} />
+            <span id='age-error' style={{ display: 'none' }}>Age must be greater than 16 and less than 90</span>
+          </div><br />
+          <div>Email:
+            <input type='text' name="email" value={editData.email} onChange={handleChange} onInput={validateEmail && validateLocalEmail} />
+            <span id='email-error' style={{ display: "none" }}>Enter valid Email</span>
+            <span id='duplicate-error' style={{ display: "none" }}>Email already exist</span>
+          </div><br />
+          <div>
             Stream:
             <label>
               <input
@@ -285,10 +281,10 @@ const Display = () => {
             ))}
             <span id='subject-error' style={{ display: 'none', color: 'red' }}>Select at least one subject</span>
           </div>
-        <button type="submit">Update</button>
-      </form>
+          <button type="submit">Update</button>
+        </form>
       )}
-              <Pagination currPage={currPage} totalPage = {userData.length} pageSize = {pageSize} onPageChange={page =>setCurrPage(page)} />
+      <Pagination items={userData} pageLimit={pageLimit} />
 
     </>
   );

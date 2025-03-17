@@ -1,64 +1,27 @@
-import React from 'react'
-import { usePagination } from './usePagination'
+import React, { useEffect } from "react";
+import usePagination from "./usePagination.js";
 
 const Pagination = (props) => {
-    const {
-        onPageChange,
-        totalPage,
-        childCnt = 1,
-        currPage,
-        pageSize,
-    } = props
+    const { pageNumber, changePage, pageData, nextPage, previousPage } =
+        usePagination(props.items, props.pageLimit);
 
-    const paginationRange = usePagination({
-        currPage,
-        totalPage,
-        childCnt,
-        pageSize
-    })
+    useEffect(() => {
+        props.setPageItems(pageData);
+    }, [pageNumber]);
 
-    if(currPage === 0 || paginationRange.length < 2){
-        return null;
-    }
+    return (
+        <div>
+            <b onClick={previousPage}>Prev</b>
+            <input
+                value={pageNumber}
+                onChange={(e) => {
+                    changePage(e.target.valueAsNumber);
+                }}
+                type="number"
+            />
+            <b onClick={nextPage}>Next</b>
+        </div>
+    );
+};
 
-    const onNext = () => {
-        onPageChange(currPage + 1)
-    }
-
-    const onPrev = () => {
-        onPageChange(currPage - 1)
-    }
-
-    let lastPage = paginationRange[paginationRange.length-1]
-
-  return (
-    <ul>
-      <li
-        onClick={onPrev}
-      >
-        <div className="arrow left" />
-      </li>
-      {paginationRange.map(pageNumber => {
-
-        // if (pageNumber === DOTS) {
-        //   return <li>&#8230;</li>;
-        // }
-
-        return (
-          <li
-            onClick={() => onPageChange(pageNumber)}
-          >
-            {pageNumber}
-          </li>
-        );
-      })}
-      <li
-        onClick={onNext}
-      >
-        <div className="arrow right" />
-      </li>
-    </ul>
-  )
-}
-
-export default Pagination
+export default Pagination;
