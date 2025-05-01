@@ -1,0 +1,217 @@
+import React, { useEffect, useRef, useState } from 'react'
+import Tesseract from "tesseract.js";
+import uploadIcon from '../image/upload.png'
+import clearIcon from '../image/clear.png'
+import Webcam from "react-webcam";
+import { chain, difference } from 'lodash';
+import axios from 'axios';
+
+const inv1 = ['lil', 'reds', 'takeout', 'and', 'c', 'oxtail', 'gravy', 'subtotal', 'taxes', 'tip', 'discount', 'total']
+const inv2 = ['order', 'sandwich', 'shop', 'tip', 'total', 'your', 'delivery', 'by', 'view', 'store', 'opens', 'at']
+const inv3 = ['coastline', 'burgers', 'redmond', 'street', '98052', 'ordered', 'subtotal']
+const inv4 = ['greek', 'and', 'american', 'colby', 'everett', '98201', 'ordered', 'how', 'was', 'your', 'visit', 'restaurant', 'reach', 'contact']
+const inv5 = ['bao', 'boss', 'order', 'details', 'subtotal', 'estimated', 'tax', 'discount', 'total']
+const inv6 = ['buffalo', 'wild', 'wings', 'grill', 'bar', '1450', 'ala', 'moana', 'blvd', 'unit', '3326', 'table', 'guests', 'order', 'type', 'subtotal', 'tax', 'total', 'balance', 'due']
+
+const HomePage = () => {
+  const webcamRef = useRef(null);
+  const inputRef = useRef(null);
+  const [hasImage, setHasImage] = useState(false)
+  const [message, setMessage] = useState("");
+  const [imgData, setImgData] = useState([])
+
+  const handleFile = () => {
+    if (inputRef?.current) {
+      inputRef.current.click();
+    }
+  }
+
+  useEffect(() => {
+  const interval = setInterval(() => {
+  captureImage();
+  console.log("capturing...");
+
+  }, 10000);
+  return () => {
+  clearInterval(interval);
+  console.log("interval clear");
+  };
+  }, [])
+
+  const handleClear = () => {
+    setHasImage(false);
+    setMessage("");
+  };
+
+  const PostImage = async (img, txt) => {
+    try {
+      console.log('img ', img);
+      const formData = new FormData();
+      formData.append("tempImage", img)
+      const apiResponse = await axios.post(`https://n-again.com/api/uploadImageArr`, formData );
+      console.log('apiResponse ', apiResponse);
+      if (apiResponse.data.status) {
+        console.log("URL ", 'https://n-again.com/images/'+apiResponse.data.path);
+        setImgData((prev) => [...prev, { image: img, text: txt, path: 'https://n-again.com/images/'+apiResponse.data.path  }])
+        return apiResponse.data.path
+      }
+      else {
+        console.error(apiResponse?.data?.message)
+      }
+    }
+    catch (err) {
+      console.error(err?.message);
+    }
+  }
+
+  // useEffect(() => {
+    // const showImage = () => {
+      // console.log('showing...');
+      // try {
+        // const imageData = axios.get(`http://192.168.0.3:7000/images/1746080992531___baobas.png`)
+        // console.log("imageData ", imageData);
+        // setImgData((prev) => [...prev, { img: imageData, text: 'My Text' }])
+      // } catch (error) {
+        // console.error('error ', error)
+      // }
+    // }
+  // }, [])
+
+  const handleFileChange = (e) => {
+    const newFile = e.target.files[0];
+    console.log("new ", newFile);
+    const files = Array.from(e.target.files)
+    console.log("Files ", files)
+    files.forEach(file => { recognizeText(file) })
+    setHasImage(true);
+    recognizeText(newFile);
+  }
+
+  const captureImage = () => {
+    console.log("pic clicked...");
+    const imageSrc = webcamRef.current.getScreenshot();
+    setHasImage(true)
+    recognizeText(imageSrc)
+  }
+
+  const recognizeText = async (imageFile) => {
+    setMessage("Identifying text...")
+    const response = await Tesseract.recognize(imageFile, "eng")
+    const { data } = response;
+    if (data?.text) {
+      const text = chain(data?.text)
+        .replace(/(\r\n|\n|\r)/gm, " ")
+        .replace(/,/g, "")
+        .replace(/\./g, "")
+        .trim()
+        .lowerCase()
+        .value();
+      const words = chain(text)
+        .split(" ")
+        .map((item) => {
+          if (item) {
+            return item;
+          }
+        })
+        .value();
+      if (difference(inv1, words)?.length === 0 || difference(inv2, words)?.length === 0 || difference(inv3, words)?.length === 0 || difference(inv4, words)?.length === 0 || difference(inv5, words)?.length === 0 || difference(inv6, words)?.length === 0) {
+        PostImage(imageFile, data.text)
+        setMessage("Text Identified Successfully")
+        
+      } else {
+        setMessage("Could not find required text in the image.");
+      }
+    } else {
+      setMessage("Could not find any text in image.");
+    }
+  }
+
+  return (
+    <>
+      <div className='image-container' style={{ border: '2px solid black', width: '154px', marginLeft: '45%', marginTop: '100px' }}>
+        {!hasImage ? (<div className='upload-container' onClick={handleFile}>
+          <input style={{ display: 'none' }} ref={inputRef} type='file' accept='image/*' onChange={handleFileChange} />
+          <img className='upload-icon' src={uploadIcon} />
+          <div>Select Image</div>
+        </div>
+        ) : (
+          <div className=''  >
+            <img className='close-icon' src={clearIcon} onClick={handleClear} />
+          </div>
+        )}
+      </div>
+      <div style={{ marginLeft: '105px' }}>
+        <Webcam
+          ref={webcamRef}
+          audio={false}
+          height={100 + '%'}
+          width={100 + '%'}
+          screenshotFormat="image/png"
+          screenshotQuality={1}
+          forceScreenshotSourceSize={true}
+          videoConstraints={{
+            height: 720,
+            width: 1280, facingMode: 'environment'
+          }}
+          onUserMedia={() => console.log("camera started")}
+          onUserMediaError={(e) => console.warn("camera error: ", e)}
+        />
+      </div>
+
+      <div className="message" style={{ marginLeft: '45%', marginTop: '10px' }}>{message}</div>
+      {imgData.length > 0 && imgData.map((it, i) =>
+        <div key={i}>
+          <h5 style={{ marginLeft: '16%', marginTop: '20px' }}>Processed Data</h5>
+          <img src={typeof it.image === 'string' ? it.image : URL.createObjectURL(it.image)} style={{ marginLeft: '10%', width: '250px', height: '250px' }} />
+          <p style={{ marginLeft: '10%', marginTop: '20px', fontSize: '20px' }}>Image URL: <a href={it.path} target="_blank">{it.path}</a></p>
+          <pre style={{ marginLeft: '10%', marginTop: '20px', fontSize: '20px' }}>{it.text}</pre>
+        </div>
+      )}
+    </>
+  )
+}
+
+export default HomePage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 10: 30 - 11: 40 ===> project setup
+
+// 11:40 -  1: 30 ===> correction is extractText file (run build)
+
+// 1: 50 -- 3: 40 ===> remove button and valid word array and add time interval of 10 second  from logic error after deploy
+
+// 3: 40 --   ==> webca, not show after deply issue
+
+
+
+// https://grand-lamington-255712.netlify.app/
