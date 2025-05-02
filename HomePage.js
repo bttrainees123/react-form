@@ -5,6 +5,7 @@ import clearIcon from '../image/clear.png'
 import Webcam from "react-webcam";
 import { chain, difference } from 'lodash';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const inv1 = ['lil', 'reds', 'takeout', 'and', 'c', 'oxtail', 'gravy', 'subtotal', 'taxes', 'tip', 'discount', 'total']
 const inv2 = ['order', 'sandwich', 'shop', 'tip', 'total', 'your', 'delivery', 'by', 'view', 'store', 'opens', 'at']
@@ -14,6 +15,7 @@ const inv5 = ['bao', 'boss', 'order', 'details', 'subtotal', 'estimated', 'tax',
 const inv6 = ['buffalo', 'wild', 'wings', 'grill', 'bar', '1450', 'ala', 'moana', 'blvd', 'unit', '3326', 'table', 'guests', 'order', 'type', 'subtotal', 'tax', 'total', 'balance', 'due']
 
 const HomePage = () => {
+  const navigate = useNavigate()
   const webcamRef = useRef(null);
   // const inputRef = useRef(null);
   // const [hasImage, setHasImage] = useState(false)
@@ -33,7 +35,7 @@ const HomePage = () => {
       if (!isCapture) {
         captureImage();
       }
-    }, 10000);
+    }, 5000);
     return () => {
       clearInterval(interval);
     };
@@ -72,7 +74,7 @@ const HomePage = () => {
         console.log('response ', response);
         setImgData((prev) => [...prev, { image: imageUrl, text: txt, path: 'https://n-again.com/images/' + response?.data?.data }])
         setMessage("Image set uploadBase64")
-        return 
+        navigate('/text-home')
       }
     }
     catch (err) {
@@ -91,6 +93,7 @@ const HomePage = () => {
 
 
   const captureImage = () => {
+    if(isCapture) return
     console.log("pic clicked...");
     const imageUrl = webcamRef.current.getScreenshot();
     if (imageUrl) {
@@ -111,6 +114,7 @@ const HomePage = () => {
   };
 
   const recognizeText = async (imageFile) => {
+    setIsCapture(true)
     setMessage("Identifying text...")
     const response = await Tesseract.recognize(imageFile, "eng")
     const { data } = response;
@@ -135,20 +139,19 @@ const HomePage = () => {
             if(!isCapture){
               uploadBase64(imageFile, data.text)
             }
-            let isCheck = isBase64(imgArr[0])
-            setIsCapture(true)
-            setMessage(`Text Identified Successfully uploadBase64 ${isCheck}`)
+            setMessage(`Text Identified Successfully uploadBase64`)
           }
           else {
             PostImage(imageFile, data.text)
-            let isCheck = isBase64(imageFile)
-            setMessage(`Text Identified Successfully PostImage ${isCheck}`)
+            setMessage(`Text Identified Successfully PostImage`)
           }
       } else {
         setMessage("Could not find required text in the image.");
+        setIsCapture(false)
       }
     } else {
       setMessage("Could not find any text in image.");
+      setIsCapture(false)
     }
   }
 
@@ -166,8 +169,8 @@ const HomePage = () => {
           </div>
         )}
       </div> */}
-      <div style={{ marginLeft: '105px' }}>
-        <Webcam
+      <div style={{ position: 'fixed', left: '0', top: '0', width: '100vw', height: '100vh', backgroundColor: '#000', zIndex: 9999}}>
+        <Webcam 
           ref={webcamRef}
           audio={false}
           height={100 + '%'}
@@ -181,10 +184,14 @@ const HomePage = () => {
           }}
           onUserMedia={() => console.log("camera started")}
           onUserMediaError={(e) => console.warn("camera error: ", e)}
+          style={{
+            border: '1px solid black',
+            objectFit: 'cover'
+          }}
         />
       </div>
 
-      <div className="message" style={{ marginLeft: '45%', marginTop: '10px' }}>{message}</div>
+      {/* <div className="message" style={{ marginLeft: '45%', marginTop: '10px' }}>{message}</div>
       {imgData.length > 0 && imgData.map((it, i) =>
         <div key={i}>
           <h5 style={{ marginLeft: '16%', marginTop: '20px' }}>Processed Data</h5>
@@ -192,7 +199,7 @@ const HomePage = () => {
           <p style={{ marginLeft: '10%', marginTop: '20px', fontSize: '20px' }}>Image URL: <a href={it.path} target="_blank">{it.path}</a></p>
           <pre style={{ marginLeft: '10%', marginTop: '20px', fontSize: '20px' }}>{it.text}</pre>
         </div>
-      )}
+      )} */}
     </>
   )
 }
