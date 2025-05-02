@@ -15,44 +15,45 @@ const inv6 = ['buffalo', 'wild', 'wings', 'grill', 'bar', '1450', 'ala', 'moana'
 
 const HomePage = () => {
   const webcamRef = useRef(null);
-  const inputRef = useRef(null);
-  const [hasImage, setHasImage] = useState(false)
+  // const inputRef = useRef(null);
+  // const [hasImage, setHasImage] = useState(false)
   const [message, setMessage] = useState("");
   const [imgData, setImgData] = useState([])
+  const [isCapture, setIsCapture] = useState(false)
+  const [imgArr, setImgArr] = useState([])
 
-  const handleFile = () => {
-    if (inputRef?.current) {
-      inputRef.current.click();
-    }
-  }
+  // const handleFile = () => {
+  //   if (inputRef?.current) {
+  //     inputRef.current.click();
+  //   }
+  // }
 
   useEffect(() => {
-  const interval = setInterval(() => {
-  captureImage();
-  console.log("capturing...");
+    const interval = setInterval(() => {
+      if (!isCapture) {
+        captureImage();
+      }
+    }, 10000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isCapture])
 
-  }, 10000);
-  return () => {
-  clearInterval(interval);
-  console.log("interval clear");
-  };
-  }, [])
-
-  const handleClear = () => {
-    setHasImage(false);
-    setMessage("");
-  };
+  // const handleClear = () => {
+  //   setHasImage(false);
+  //   setMessage("");
+  // };
 
   const PostImage = async (img, txt) => {
     try {
       console.log('img ', img);
       const formData = new FormData();
       formData.append("tempImage", img)
-      const apiResponse = await axios.post(`https://n-again.com/api/uploadImageArr`, formData );
+      const apiResponse = await axios.post(`https://n-again.com/api/uploadImageArr`, formData);
       console.log('apiResponse ', apiResponse);
       if (apiResponse.data.status) {
-        console.log("URL ", 'https://n-again.com/images/'+apiResponse.data.path);
-        setImgData((prev) => [...prev, { image: img, text: txt, path: 'https://n-again.com/images/'+apiResponse.data.path  }])
+        console.log("URL ", 'https://n-again.com/images/' + apiResponse.data.path);
+        setImgData((prev) => [...prev, { image: img, text: txt, path: 'https://n-again.com/images/' + apiResponse.data.path }])
         return apiResponse.data.path
       }
       else {
@@ -64,35 +65,50 @@ const HomePage = () => {
     }
   }
 
-  // useEffect(() => {
-    // const showImage = () => {
-      // console.log('showing...');
-      // try {
-        // const imageData = axios.get(`http://192.168.0.3:7000/images/1746080992531___baobas.png`)
-        // console.log("imageData ", imageData);
-        // setImgData((prev) => [...prev, { img: imageData, text: 'My Text' }])
-      // } catch (error) {
-        // console.error('error ', error)
-      // }
-    // }
-  // }, [])
-
-  const handleFileChange = (e) => {
-    const newFile = e.target.files[0];
-    console.log("new ", newFile);
-    const files = Array.from(e.target.files)
-    console.log("Files ", files)
-    files.forEach(file => { recognizeText(file) })
-    setHasImage(true);
-    recognizeText(newFile);
+  const uploadBase64 = async (imageUrl, txt) => {
+    try {
+      const response = await axios.post(`https://n-again.com/api/uploadbase64`, { image: imageUrl })
+      if (response.status) {
+        console.log('response ', response);
+        setImgData((prev) => [...prev, { image: imageUrl, text: txt, path: 'https://n-again.com/images/' + response?.data?.data }])
+        setMessage("Image set uploadBase64")
+        return 
+      }
+    }
+    catch (err) {
+      console.error(err?.message);
+    }
   }
+
+  // const handleFileChange = (e) => {
+  //   const newFile = e.target.files[0];
+  //   console.log("new ", newFile);
+  //   const files = Array.from(e.target.files)
+  //   console.log("Files ", files)
+  //   files.forEach(file => { recognizeText(file) })
+  //   setHasImage(true);
+  // }
+
 
   const captureImage = () => {
     console.log("pic clicked...");
-    const imageSrc = webcamRef.current.getScreenshot();
-    setHasImage(true)
-    recognizeText(imageSrc)
+    const imageUrl = webcamRef.current.getScreenshot();
+    if (imageUrl) {
+      // setHasImage(true)
+      recognizeText(imageUrl)
+    }
   }
+
+  const isBase64 = (str) => {
+    try {
+      if (str === '' || str.trim() === '') {
+        return false;
+      }
+      return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(str);
+    } catch (err) {
+      return false;
+    }
+  };
 
   const recognizeText = async (imageFile) => {
     setMessage("Identifying text...")
@@ -115,9 +131,19 @@ const HomePage = () => {
         })
         .value();
       if (difference(inv1, words)?.length === 0 || difference(inv2, words)?.length === 0 || difference(inv3, words)?.length === 0 || difference(inv4, words)?.length === 0 || difference(inv5, words)?.length === 0 || difference(inv6, words)?.length === 0) {
-        PostImage(imageFile, data.text)
-        setMessage("Text Identified Successfully")
-        
+          if (typeof imageFile === 'string') {
+            if(!isCapture){
+              uploadBase64(imageFile, data.text)
+            }
+            let isCheck = isBase64(imgArr[0])
+            setIsCapture(true)
+            setMessage(`Text Identified Successfully uploadBase64 ${isCheck}`)
+          }
+          else {
+            PostImage(imageFile, data.text)
+            let isCheck = isBase64(imageFile)
+            setMessage(`Text Identified Successfully PostImage ${isCheck}`)
+          }
       } else {
         setMessage("Could not find required text in the image.");
       }
@@ -128,7 +154,7 @@ const HomePage = () => {
 
   return (
     <>
-      <div className='image-container' style={{ border: '2px solid black', width: '154px', marginLeft: '45%', marginTop: '100px' }}>
+      {/* <div className='image-container' style={{ border: '2px solid black', width: '154px', marginLeft: '45%', marginTop: '100px' }}>
         {!hasImage ? (<div className='upload-container' onClick={handleFile}>
           <input style={{ display: 'none' }} ref={inputRef} type='file' accept='image/*' onChange={handleFileChange} />
           <img className='upload-icon' src={uploadIcon} />
@@ -139,14 +165,14 @@ const HomePage = () => {
             <img className='close-icon' src={clearIcon} onClick={handleClear} />
           </div>
         )}
-      </div>
+      </div> */}
       <div style={{ marginLeft: '105px' }}>
         <Webcam
           ref={webcamRef}
           audio={false}
           height={100 + '%'}
           width={100 + '%'}
-          screenshotFormat="image/png"
+          // screenshotFormat="image/jpeg"
           screenshotQuality={1}
           forceScreenshotSourceSize={true}
           videoConstraints={{
