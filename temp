@@ -1,86 +1,190 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import LoginPage from './components/Pages/LoginPage';
-import 'react-loading-skeleton/dist/skeleton.css'
-import PrivateRoute from './components/PrivateRoutes/PrivateRoute';
-import HandleLoginRoute from './components/PrivateRoutes/HandleLoginRoute';
-import AddTasks from './components/Tasks/AddTasks';
-import CartItem from './components/Pages/CartItem';
-import About from './components/LanguageChanger/About';
-import Post from './components/Pages/Post';
-import { lazy, Suspense } from 'react'
-import Loader from './components/Pages/Loader';
-import { ReactKeycloakProvider } from '@react-keycloak/web'
-import cloakAuth from './keycloak'
+  <label htmlFor="" className="formcontmodellabel">isFakeMenuReview        </label>     
+                  <input className="col-md-1"
+                    type="radio"
+                    value={selectedValue}
+                    checked={selectedValue === 'Yes'}
+                    onChange={() => handleRadioChange('Yes')}
+                  />Yes
+                  <input className="col-md-1"
+                    type="radio"
+                    value={selectedValue}
+                    checked={selectedValue === 'No'}
+                    onChange={() => handleRadioChange('No')}
+                  />No
+                   
+                   </div>
+                  {isInputOpen && <><div className="col-5 mb-3">
+                    <input
+                      type="number"
+                      value={value.isFakeLike}
+                      name="isFakeLike"
+                      onChange={(e) => {
+                        handleValueChange(e.target?.name, e.target?.value);
+                      }}
+                      className="form-control formcontmodelinput"
+                    />
+                  </div>
+                  <div className="col-5 mb-3">
 
-const User = lazy(() => import('./components/Pages/User'))
-const Project = lazy(() =>
-  import('./components/Pages/Project'))
-const ProjectDetails = lazy(() =>
-  import('./components/Pages/ProjectDetails'))
-const HomePage = lazy(() => import('./components/Pages/HomePage'));
+                    <input
+                      type="number"
+                      value={value.isFakeHeart}
+                      name="isFakeHeart"
+                      onChange={(e) => {
+                        handleValueChange(e.target?.name, e.target?.value);
+                      }}
+                      className="form-control formcontmodelinput"
+                    />
+                  </div></>}
 
-const Product = lazy(() => import('./components/Pages/Product'))
-const TextReader = lazy(() => import('./components/ImageTextReader/TextReader'))
-const InputParser = lazy(() => import('./components/Pages/Editor/InputParser'))
+  const inslizeState = {
+    profileImage: "",
+    status: "active",
+    itemname: "",
+    description: "",
+    dayAvailabe: Options,
+    itemnameAlias: [],
+    startTime: "",
+    endTime: "",
+    tags: [],
+    category: "",
+    restaurantId: resturentId,
+    isLeaderBoard: "0",
+    points: "",
+    isFakeLike: "",
+    isFakeHeart: "",
+    LoyaltyMessage: "",
+    deliveryPartner: []
+  };
 
-function App() {
+  const [value, setValue] = useState(inslizeState);
+  const [menu, setMenu] = useState("");
+  const [referencesItem, setReferencesItem] = useState([
+    {
+      imageId: "",
+      imageLink: "",
+    },
+  ]);
+  const [loader, setLoader] = useState(false);
+  const simpleValidator = useRef(new SimpleReactValidator());
+  const [image, setImage] = useState("");
+  const [, forceUpdate] = useState();
+  const [logoList, setLogoList] = useState([]);
+  const [selectedValue, setSelectedValue] = useState('')
+  const [isInputOpen, setIsInputOpen] = useState('')
 
-  // const { keycloak, initialized } = useKeycloak()
+  const handleChange = (e) => {
+    setValue((val) => {
+      return { ...val, [e.target.name]: e.target.value };
+    });
+  };
 
-  // if (!initialized) {
-  //   return <div>Loading...</div>
-  // }
-  return (
-    <>
-      {/* <div>
-        {keycloak.authenticated ? (<div><h1>{keycloak.tokenParsed?.preferred_username}</h1><br /><button onClick={() => keycloak.logout()}>Logout</button></div>) : <button onClick={() => keycloak.login()}>Login</button>}
-      </div> */}
-      <ReactKeycloakProvider authClient={cloakAuth}>
-        <BrowserRouter>
-          <Suspense fallback={<Loader />}>
-            <Routes>
-              <Route path='/' element={<HomePage />} />
-              <Route path='/login' element={<HandleLoginRoute Component={LoginPage} />} />
-              <Route path='/dashboard' element={<PrivateRoute Component={Project} />} />
-              <Route path='/users' element={<PrivateRoute Component={User} />} />
-              <Route path='/company-list' element={<PrivateRoute Component={ProjectDetails} />} />
-              <Route path='/add-tasks' element={<PrivateRoute Component={AddTasks} />} />
-              <Route path='/products' element={<PrivateRoute Component={Product} />} />
-              <Route path='/cart-items' element={<PrivateRoute Component={CartItem} />} />
-              <Route path='/about' element={<PrivateRoute Component={About} />} />
-              <Route path='/post' element={<PrivateRoute Component={Post} />} />
-              <Route path='/html-react' element={<PrivateRoute Component={InputParser} />} />
-              <Route path='/extract-text' element={<TextReader />} />
-              <Route path='/loading' element={<PrivateRoute Component={Loader} />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </ReactKeycloakProvider>
-    </>
-  );
-}
+  const handleRadioChange = (val) => {
+    setSelectedValue(val);
+    if(val === 'Yes'){
+      setIsInputOpen(true)
+    }
+    else{
+      setIsInputOpen(false)
+    }
+  }
 
-export default App;
-import Keycloak from 'keycloak-js'
-
-const cloakAuth = new Keycloak({
-    url: "http://localhost:8080/auth",
-    realm: "myrealm",
-    clientId: "myclient"
-});
-
-export default cloakAuth
-import { useKeycloak } from "@react-keycloak/web";
-import { Navigate } from "react-router-dom"
-
-const PrivateRoute = ({ children }) => {
-   
-    const { keycloak } = useKeycloak();
-
- const isLoggedIn = keycloak.authenticated;
-
- return isLoggedIn ? children : null;
-}
-export default PrivateRoute
-
+  const handleValueChange = (name, value) => {
+    if (name === "points") {
+      const pointsValue = Number(value);
+      if (!Number.isInteger(pointsValue) || pointsValue < 0) {
+        ErrorMessage(
+          "Points must be a positive integer (no decimals or letters)"
+        );
+        return;
+      }
+    }
+    setValue((detail) => {
+      return { ...detail, [name]: value };
+    });
+  };
+  const Serviceadd = async () => {
+    const formValid = simpleValidator.current.allValid();
+    if (!formValid) {
+      simpleValidator.current.showMessages();
+      forceUpdate(1);
+    } else {
+      try {
+        setLoader(true);
+        if (action === "add")
+          var TagData = value?.tags?.map((item) => item?.text);
+        const apiResponse = await callAPI(
+          action === "add"
+            ? apiUrls.addRestaurantMenuAdmin
+            : apiUrls.updateRestaurantMenuAdmin + `/${object._id}`,
+          {},
+          action === "add" ? "POST" : "PUT",
+          action === "add" ? { ...value, tags: TagData } : value
+        );
+        if (apiResponse?.data?.status === true) {
+          SuccessMessage(apiResponse?.data?.message);
+          
+          setValue({ ...inslizeState, tags: [] });
+          console.log("apiResponse", value.isFakeHeart)
+         LogoListAPI();
+          setReferencesItem([
+            {
+              imageId: "",
+              imageLink: "",
+            },
+          ]);
+          const Tages = value?.tags?.map((item) => {
+            if (typeof item === "string") return item;
+            else return item?.text;
+          });
+          Tagscreation(Tages);
+          handleclose();
+          setImage("");
+        } else {
+          ErrorMessage(apiResponse?.data?.message);
+        }
+        setLoader(false);
+      } catch (error) {
+        setLoader(false);
+        ErrorMessage(error?.message);
+      }
+    }
+  };
+  useEffect(() => {
+    if (action === "edit" && open) {
+      setValue({
+        itemname: object?.itemname,
+        profileImage: object?.profileImage,
+        status: object?.status,
+        description: object?.description,
+        dayAvailabe: object?.dayAvailabe ? object?.dayAvailabe : [],
+        itemnameAlias: object?.itemnameAlias ? object?.itemnameAlias : [],
+        startTime: object?.startTime,
+        endTime: object?.endTime,
+        tags: object?.tags,
+        category: object?.category?._id,
+        restaurantId: resturentId,
+        isLeaderBoard: object?.isLeaderBoard ? object?.isLeaderBoard : "0",
+        points: object?.points ? object?.points : "",
+        isFakeLike: object?.isFakeLike ? object?.isFakeLike: "",
+        isFakeHeart: object?.isFakeHeart ? object?.isFakeHeart: "",
+        LoyaltyMessage: object?.LoyaltyMessage ? object?.LoyaltyMessage : "",
+        deliveryPartner: object?.deliveryPartner?.length > 0 ? object?.deliveryPartner : []
+      });
+      if (object?.deliveryPartner?.length > 0) {
+        setReferencesItem(object?.deliveryPartner);
+      }
+      setMenu(object?.itemname)
+    } else {
+      setReferencesItem([
+        {
+          imageId: "",
+          imageLink: "",
+        },
+      ]);
+      setValue(inslizeState);
+      setMenu("")
+    }
+    // eslint-disable-next-line
+  }, [object, action, open]);
 
