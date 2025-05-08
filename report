@@ -1,0 +1,7 @@
+# 08-05-25
+//10: 00 ---> 11: 40 ----> Admin dashboard Menu data update
+//11: 40 ---> 01: 40 ----> Radio button for isFakeMenuReview with two input fields
+//02: 10 ---> 04: 00 ----> Multiple tag delete button adding check box for select when checkbox selected then only delete button visible
+//04: 00 ---> 05: 00 ----> adding select all and unselect all button
+//05: 00 ---> 06: 30 ----> change selectall and unselect all button to master checkbox
+//06: 30 ---> 07: 00 ----> UI correction of buttons and checkboxe and input field
