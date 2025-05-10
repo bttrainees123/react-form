@@ -219,3 +219,43 @@ const Form = () => {
 }
 
 export default Form
+
+                                                                                                                                                  
+const handleChangeCheck = (e) => {
+    const { name, value, type, checked } = e.target;
+    console.log("Name:", name);
+    console.log("Value:", value);
+    console.log("Type:", type);
+    console.log("Checked:", checked);
+
+    if (type === "checkbox") {
+        let check = '';
+
+        if (Array.isArray(userData[editInd].subject)) {
+            for (let i = 0; i < userData[editInd].subject.length; i++) {
+                if (Array.isArray(userData[editInd].subject[i])) {
+                    console.log(i, "-----------", userData[editInd].subject[i][0]);
+                    check = userData[editInd].subject[i][0];
+                    console.log("Check:", check);
+                }
+            }
+        }
+
+        setEditData((prevData) => ({
+            ...prevData,
+            subject: checked
+                ? [...(prevData.subject || []), value]
+                : (prevData.subject || []).filter((sub) => sub !== value && sub !== check),
+        }));
+
+        setTimeout(() => {
+            console.log("Updated Edit Data:", editData.subject);
+        }, 100); // Slight delay to ensure state update before logging
+    } else {
+        setEditData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    }
+};
+
